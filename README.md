@@ -21,5 +21,6 @@ in the node
 ```
 
 node.py start node.info
+node.py printNode
 node.py command
 ```

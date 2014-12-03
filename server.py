@@ -3,6 +3,8 @@ import os , sys , getopt, subprocess , paramiko , csv
 
 #Things to do
 SOROOT = "/home/SOROOT"
+nodelist = "/nodes.list"
+loglist = "/processes.log"
 if len(sys.argv)>1 :
   #start network of server (args are : start)
   if str(sys.argv[1])== 'start':
@@ -61,25 +63,39 @@ if len(sys.argv)>1 :
       print 'Node already registered as a node, nodeID : ' , lastID
   #executing commands
   if str(sys.argv[1])== 'exec':
+    #check if log file exists if not create it.
+    if not os.path.isfile(SOROOT+loglist) :
+      open((SOROOT+loglist),'w').close()
+      print 'process log file didnt existed, creating empty file'
     print 'executing a command'
     #execute a command in a node (args are : exec nodeID commands)
     if str(sys.argv[2])== 'node':
       print 'executing a command in a node'
     #execute a command in all nodes (args are : exec all commands)
-    if str(sys.argv[2])== 'all':
-      print 'executing a command'
+    elif str(sys.argv[2])== 'all':
+      print 'executing a command in all nodes'
     #execute a command in the server (args are : exec commands)
-    if str(sys.argv[2])== 'command':
-      print 'command : '
+    else :
+      print 'command : ' , str(sys.argv[2])
+      #executes a command
+      process = subprocess.Popen(sys.argv[2:len(sys.argv)])
+      #Now add the pid and command to the server log
+      with open(SOROOT+loglist, 'a') as f:
+        writer = csv.writer(f, delimiter=' ')
+        writer.writerow([process.pid,str(sys.argv[2:len(sys.argv)]),"server"])
   
   #show server processes (args are : allprocs this)
   if str(sys.argv[1])== 'allprocs':
     print 'Processes mode'
+    with open(SOROOT+loglist, 'rb') as f:
+      reader = csv.reader(f, delimiter=' ', quoting=csv.QUOTE_NONE)
+      for row in reader:
+        print row
 else:
   print 'No arguments given, please give an argument'
   print 'Posible Arguments : '
   print 'start devicename IP : starts the server with this devicename and IP'
   print 'addnode  : Add a new node with a .info file'
   print 'exec : executes a tast or command in a nod or all the nodes or in the server'
-  print 'allprocs : watches all the proceses'
+  print 'allprocs : watches all the proceses ever executed'
   print 'nodePrint : list all the nodes'

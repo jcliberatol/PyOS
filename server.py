@@ -14,7 +14,7 @@ def getNode(nodeID):
       reader = csv.reader(f, delimiter=' ', quoting=csv.QUOTE_NONE)
       for row in reader:
         nid = row[0]
-        if nid == nodeID :  
+        if int(nid) == nodeID :  
           ip = row[1]
           usr = row[2]
           psw = row[3]
@@ -100,7 +100,6 @@ if len(sys.argv)>1 :
       ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
       ssh.connect(nodeIP,username=user,password=pwd)
       cmd = str(sys.argv[4:len(sys.argv)])
-      print cmd
       cmd2 = ''
       for argument in sys.argv[4:len(sys.argv)]:
         cmd2+=' '
@@ -124,7 +123,6 @@ if len(sys.argv)>1 :
       print num_nodes , "nodes"
       for  i in range (num_nodes) :
         nodeID = i+1
-        print nodeID
         #get the node essentials
         nodeIP , user , pwd = getNode(nodeID)
         #Print the node IP
@@ -132,13 +130,11 @@ if len(sys.argv)>1 :
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh.connect(nodeIP,username=user,password=pwd)
-        cmd = str(sys.argv[4:len(sys.argv)])
-        print cmd
+        cmd = str(sys.argv[3:len(sys.argv)])
         cmd2 = ''
-        for argument in sys.argv[4:len(sys.argv)]:
+        for argument in sys.argv[3:len(sys.argv)]:
           cmd2+=' '
           cmd2+=str(argument)
-        print cmd2
         cpid , stdin, stdout, stderr = execute(ssh,cmd2)
         for line in stdout.readlines():
           print line,
@@ -146,7 +142,7 @@ if len(sys.argv)>1 :
         #Register in the log
         with open(SOROOT+loglist, 'a') as f:
           writer = csv.writer(f, delimiter=' ')
-          writer.writerow([cpid,str(sys.argv[4:len(sys.argv)]),nodeIP])
+          writer.writerow([cpid,str(sys.argv[3:len(sys.argv)]),nodeIP])
     #execute a command in the server (args are : exec commands)
     else :
       print 'command : ' , str(sys.argv[2])

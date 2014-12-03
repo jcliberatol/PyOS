@@ -1,6 +1,24 @@
 #!/usr/bin/env python
 import os , sys , getopt, subprocess , paramiko , csv
-
+#executes a remote process in a node
+def execute(channel, command):
+    command = 'echo $$; exec ' + command
+    stdin, stdout, stderr = channel.exec_command(command)
+    pid = int(stdout.readline())
+    return pid, stdin, stdout, stderr
+def getNode(nodeID):
+    ip=''
+    usr=''
+    psw=''
+    with open(SOROOT+nodelist, 'rb') as f:
+      reader = csv.reader(f, delimiter=' ', quoting=csv.QUOTE_NONE)
+      for row in reader:
+        nid = row[0]
+        if nid == nodeID :  
+          ip = row[1]
+          usr = row[2]
+          psw = row[3]
+    return ip , usr , psw
 #Things to do
 SOROOT = "/home/SOROOT"
 nodelist = "/nodes.list"
@@ -71,9 +89,64 @@ if len(sys.argv)>1 :
     #execute a command in a node (args are : exec nodeID commands)
     if str(sys.argv[2])== 'node':
       print 'executing a command in a node'
+      
+      #we have to do this for a specific node in the network
+      nodeID = sys.argv[3]
+      #get the node essentials
+      nodeIP , user , pwd = getNode(nodeID)
+      #Print the node IP
+      print "node IP : ", nodeIP , "user : " , user
+      ssh = paramiko.SSHClient()
+      ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+      ssh.connect(nodeIP,username=user,password=pwd)
+      cmd = str(sys.argv[4:len(sys.argv)])
+      print cmd
+      cmd2 = ''
+      for argument in sys.argv[4:len(sys.argv)]:
+        cmd2+=' '
+        cmd2+=str(argument)
+      print cmd2
+      cpid , stdin, stdout, stderr = execute(ssh,cmd2)
+      for line in stdout.readlines():
+        print line,
+      ssh.close()
+      #Register in the log
+      with open(SOROOT+loglist, 'a') as f:
+        writer = csv.writer(f, delimiter=' ')
+        writer.writerow([cpid,str(sys.argv[4:len(sys.argv)]),nodeIP])
+      
     #execute a command in all nodes (args are : exec all commands)
     elif str(sys.argv[2])== 'all':
       print 'executing a command in all nodes'
+      
+      #Number of nodes
+      num_nodes = sum(1 for line in open(SOROOT+nodelist))
+      print num_nodes , "nodes"
+      for  i in range (num_nodes) :
+        nodeID = i+1
+        print nodeID
+        #get the node essentials
+        nodeIP , user , pwd = getNode(nodeID)
+        #Print the node IP
+        print "node IP : ", nodeIP , "user : " , user
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.connect(nodeIP,username=user,password=pwd)
+        cmd = str(sys.argv[4:len(sys.argv)])
+        print cmd
+        cmd2 = ''
+        for argument in sys.argv[4:len(sys.argv)]:
+          cmd2+=' '
+          cmd2+=str(argument)
+        print cmd2
+        cpid , stdin, stdout, stderr = execute(ssh,cmd2)
+        for line in stdout.readlines():
+          print line,
+        ssh.close()
+        #Register in the log
+        with open(SOROOT+loglist, 'a') as f:
+          writer = csv.writer(f, delimiter=' ')
+          writer.writerow([cpid,str(sys.argv[4:len(sys.argv)]),nodeIP])
     #execute a command in the server (args are : exec commands)
     else :
       print 'command : ' , str(sys.argv[2])
@@ -91,6 +164,7 @@ if len(sys.argv)>1 :
       reader = csv.reader(f, delimiter=' ', quoting=csv.QUOTE_NONE)
       for row in reader:
         print row
+#Non correct usage or help
 else:
   print 'No arguments given, please give an argument'
   print 'Posible Arguments : '

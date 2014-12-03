@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import os , sys , getopt, subprocess
+import os , sys , getopt, subprocess , paramiko
 
 #Things to do
 #Print the arguments
@@ -23,7 +23,8 @@ if len(sys.argv)>1 :
       serverIP = str(sys.argv[3])
       subprocess.call(["./netdummy.sh",deviceName,serverIP])
     else:
-      print 'incorrect amount of arguments to start server'  
+      print 'incorrect amount of arguments to start server'
+      sys.exit()
   #add a node to the server (args are : addnode node.info)
   if str(sys.argv[1])== 'addnode':
     print 'Adding a new node'

@@ -4,12 +4,13 @@ import os
 import socket
 import getpass
 import sys
+import subprocess
 
 #get the device name
 deviceName = str(sys.argv[1])
 #get the IP
 nodeIP = str(sys.argv[2])
-#subprocess.call(["./netdummy.sh",deviceName,serverIP])
+subprocess.call(["./setnetwork.sh",deviceName,nodeIP])
 #Ingresar host
 host = str(sys.argv[3])
 #Ingresar password

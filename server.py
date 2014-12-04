@@ -38,7 +38,7 @@ if len(sys.argv)>1 :
       deviceName = str(sys.argv[2])
       #get the IP
       serverIP = str(sys.argv[3])
-      subprocess.call(["./netdummy.sh",deviceName,serverIP])
+      subprocess.call(["./setnetwork.sh",deviceName,serverIP])
     else:
       print 'incorrect amount of arguments to start server'
       sys.exit()
